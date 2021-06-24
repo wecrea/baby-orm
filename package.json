@@ -1,0 +1,39 @@
+{
+  "author": "Florian DUPUIS <florian@wecrea.com>",
+  "name": "baby-orm",
+  "description": "BabyORM is a tiny NodeJS ORM for Postgresql",
+  "keywords": [
+    "orm",
+    "database",
+    "postgres"
+  ],
+  "version": "1.0.0",
+  "license": "Apache 2",
+  "homepage": "https://github.com/wecrea/baby-orm",
+  "repository": "https://github.com/wecrea/baby-orm.git",
+  "contributors": [
+    {
+      "name": "Florian DUPUIS",
+      "email": "florian@wecrea.com"
+    },
+    {
+      "name": "Alexis CABILLIC",
+      "email": "alexis@wecrea.com"
+    }
+  ],
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "node ./test",
+    "baby-orm:create": "node ./bin/create.js",
+    "baby-orm:migrate": "node ./bin/migrate.js"
+  },
+  "engines": {
+    "node": ">= 10.0.0"
+  },
+  "analyse": false,
+  "dependencies": {
+    "async": "^3.2.0",
+    "moment": "^2.29.1",
+    "pg": "^8.6.0"
+  }
+}
