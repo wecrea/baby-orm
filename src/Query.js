@@ -2,8 +2,6 @@ const Validator = require("./Validator");
 const BabyOrmError = require("./Error");
 const { Pool } = require("pg");
 
-const pool = new Pool();
-
 class Query {
   /**
    * Constructor of Query class
@@ -14,6 +12,14 @@ class Query {
   constructor(queryString, params = null) {
     this.query = queryString;
     this.params = params;
+
+    try {
+      this.pool = new Pool();
+    } catch (e) {
+      console.error(e);
+      throw new BabyOrmError("ConnexionError", e);
+    }
+
     return this;
   }
 
@@ -83,20 +89,24 @@ class Query {
    */
   execute() {
     // Error if there is no current query
-    if (Validator.emptyOrNull(this.queryString)) {
+    if (Validator.emptyOrNull(this.query)) {
       throw new BabyOrmError(
         "Empty Query",
         "It seems the SQL query is empty and can not be executed"
       );
     }
 
-    // Execute without parameters
-    if (this.params === null || this.params.length === 0) {
-      return pool.query(this.queryString);
-    }
+    try {
+      // Execute without parameters
+      if (this.params === null || this.params.length === 0) {
+        return this.pool.query(this.query);
+      }
 
-    // Execute with parameters
-    return pool.query(this.queryString, this.params);
+      // Execute with parameters
+      return this.pool.query(this.query, this.params);
+    } catch (err) {
+      throw new BabyOrmError("QueryError", err.message);
+    }
   }
 }
 

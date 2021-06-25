@@ -15,19 +15,14 @@ console.log("Start migration process");
 
 // use waterfall to have a synchronous process
 async.waterfall(
-  [
-    checkMigrationTable(cb),
-    createMigrationTable(result, cb),
-    getLastMigration(filename, cb),
-    executeFiles(lastEntry, cb),
-  ],
+  [checkMigrationTable, createMigrationTable, getLastMigration, executeFiles],
   (err, result) => {
     if (err) {
       // called everywhere in waterfall if there is an error
-      console.error(`An error occurred !`, err);
+      console.error(`An error occurred !`, err.message);
     } else {
       // Display success message at the end of the process
-      console.log(`End of migration, ${result} files imported !`);
+      console.log(`End of migration, ${result} file(s) imported !`);
     }
 
     // Kill node process anyway
@@ -49,11 +44,11 @@ function checkMigrationTable(callback) {
   );
   Q.execute()
     .then((result) => {
-      callback(null, result.rows.length > 0);
+      return callback(null, result.rows.length > 0);
     })
     .catch((err) => {
       // Error = go to the end of the async waterfall
-      callback(err, null);
+      return callback(err, null);
     });
 }
 
@@ -66,7 +61,7 @@ function createMigrationTable(tableExist, callback) {
   // If we found the table in previous step
   if (tableExist) {
     // Go to the next step :-)
-    callback(null, false);
+    return callback(null, false);
   }
 
   // Create the Migration table
@@ -76,11 +71,11 @@ function createMigrationTable(tableExist, callback) {
   Q.execute()
     .then((result) => {
       console.log(`Migration table successfully created`);
-      callback(null, true);
+      return callback(null, true);
     })
     .catch((err) => {
       // Error = go to the end of the waterfall
-      callback(err, null);
+      return callback(err, null);
     });
 }
 
@@ -92,17 +87,20 @@ function createMigrationTable(tableExist, callback) {
 function getLastMigration(created, callback) {
   // Table has just been created so go the next step
   if (created) {
-    callback(null, null);
+    return callback(null, null);
   }
 
   // Retrieve last file migrated
   let Q = new Query(`SELECT file FROM migrations ORDER BY id DESC LIMIT 1`);
   Q.execute()
     .then((result) => {
-      callback(null, result.rows.length > 0 ? result.rows[0].file : null);
+      return callback(
+        null,
+        result.rows.length > 0 ? result.rows[0].file : null
+      );
     })
     .catch((err) => {
-      callback(err, null);
+      return callback(err, null);
     });
 }
 
@@ -121,15 +119,17 @@ function executeFiles(lastFile, callback) {
   }
 
   // Define the working directory
-  const working_dir = `${Config.base_path}${Config.database_dir}/migrations`;
+  const working_dir = `${Config.base_path}/${Config.database_dir}/migration`;
 
   // Read directory
   fs.readdir(working_dir, (err, files) => {
-    if (err) cb(err, null);
+    if (err) {
+      return callback(err, null);
+    }
 
     // If there is no file, go the next step of waterfall
     if (files.length === 0) {
-      callback(null, 0);
+      return callback(null, 0);
     }
 
     // Count files migrated in this batch
@@ -139,7 +139,7 @@ function executeFiles(lastFile, callback) {
       if (lastFileDate !== null && lastFileDate >= file.split("-")[0]) {
         // If old file and no file must be migrated, go to the next step of waterfall
         if (files.length - 1 === index) {
-          callback(null, nbFiles);
+          return callback(null, nbFiles);
         }
 
         // Old file so go to next please
@@ -166,17 +166,17 @@ function executeFiles(lastFile, callback) {
 
                 // All files migrated, go to the next step of waterfall
                 if (files.length - 1 === index) {
-                  callback(null, nbFiles);
+                  return callback(null, nbFiles);
                 }
               })
               .catch((err) => {
                 // Error = go to the end of the waterfall
-                callback(err, null);
+                return callback(err, null);
               });
           })
           .catch((err) => {
             // Error = go to the end of the waterfall
-            callback(err, null);
+            return callback(err, null);
           });
       }
     });
@@ -197,12 +197,12 @@ async function executeQueries(queries) {
         .then((result) => {
           // If all queries executed, resolve the promise
           if (array.length - 1 === index) {
-            resolve();
+            return resolve();
           }
         })
         .catch((err) => {
           // Reject at the first error
-          reject(err);
+          return reject(err);
         });
     });
   });

@@ -23,9 +23,8 @@
   ],
   "main": "./src/index.js",
   "scripts": {
-    "test": "node ./test",
-    "baby-orm:create": "node ./bin/create.js",
-    "baby-orm:migrate": "node ./bin/migrate.js"
+    "create": "node ./bin/create.js",
+    "migrate": "node ./bin/migrate.js"
   },
   "engines": {
     "node": ">= 10.0.0"
@@ -33,6 +32,7 @@
   "analyse": false,
   "dependencies": {
     "async": "^3.2.0",
+    "dotenv": "^10.0.0",
     "moment": "^2.29.1",
     "pg": "^8.6.0"
   }
