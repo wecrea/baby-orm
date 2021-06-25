@@ -251,7 +251,7 @@ class ORM {
       }
       if (this.currentModel.config.timestamps === true) {
         query += ` updated_at = $${i++}, `;
-        params.push(moment().toISOString());
+        params.push("NOW()");
       }
       query = query.slice(0, -2) + ` WHERE id = $${i}`;
       params.push(id);
@@ -271,7 +271,7 @@ class ORM {
   delete(id) {
     if (this.currentModel.config.soft_delete === true) {
       return this.update(id, {
-        deleted_at: moment().toISOString(),
+        deleted_at: "NOW()",
       });
     }
     let query = `DELETE FROM ${this.currentModel.config.table} WHERE id = $1 `;
