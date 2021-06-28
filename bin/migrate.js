@@ -2,6 +2,7 @@
 
 // Load .env file if not in production
 if (process.env.NODE_ENV !== "production") {
+  console.log("\x1b[37m");
   console.log("DEBUG : load .env file because not in production mode");
   require("dotenv").config();
 }
@@ -11,6 +12,7 @@ const async = require("async");
 const Config = require("../src/Config");
 const Query = require("../src/Query");
 
+console.log("\x1b[37m");
 console.log("Start migration process");
 
 // use waterfall to have a synchronous process
@@ -22,6 +24,7 @@ async.waterfall(
       console.error(`An error occurred :`, err.message);
     } else {
       // Display success message at the end of the process
+      console.log("\x1b[37m");
       console.log(`End of migration, ${result} file(s) imported !`);
     }
 
@@ -70,6 +73,7 @@ function createMigrationTable(tableExist, callback) {
   );
   Q.execute()
     .then((result) => {
+      console.log("\x1b[32m");
       console.log(`Migration table successfully created`);
       return callback(null, true);
     })
@@ -114,6 +118,7 @@ function executeFiles(lastFile, callback) {
 
   // We display last file migrated if exists
   if (lastFile !== null) {
+    console.log("\x1b[37m");
     console.log(`Last migrated file was ${lastFile}`);
     lastFileDate = lastFile.split("-")[0];
   }
@@ -122,7 +127,7 @@ function executeFiles(lastFile, callback) {
   const working_dir = `${Config.base_path}/${Config.database_dir}/migration`;
 
   // Read directory
-  fs.readdir(working_dir, (err, files) => {
+  fs.readdir(working_dir, async (err, files) => {
     if (err) {
       return callback(err, null);
     }
@@ -134,17 +139,17 @@ function executeFiles(lastFile, callback) {
 
     // Count files migrated in this batch
     let nbFiles = 0;
-    files.forEach(async (file, index) => {
+    await files.reduce(async (memo, file) => {
+      // Await previous file
+      await memo;
+
       // Test if it a new file or not
       if (lastFileDate !== null && lastFileDate >= file.split("-")[0]) {
-        // If old file and no file must be migrated, go to the next step of waterfall
-        if (files.length - 1 === index) {
-          return callback(null, nbFiles);
-        }
-
-        // Old file so go to next please
         return;
       }
+
+      console.log("\x1b[37m");
+      console.log(`Will execute file ${file}`);
 
       // Load file
       let migration_file_content = require(working_dir + "/" + file);
@@ -152,10 +157,11 @@ function executeFiles(lastFile, callback) {
       // Only if there is many queries in the file
       if (migration_file_content.queries.length > 0) {
         // Execute all queries in the file
-
         let resultExecution = await executeQueries(
           migration_file_content.queries
         );
+
+        // If all is OK, result is TRUE, otherwise the Error
         if (resultExecution !== true) {
           return callback(resultExecution, null);
         }
@@ -164,20 +170,17 @@ function executeFiles(lastFile, callback) {
         await Q.execute()
           .then((result) => {
             // Display message and increment counter
+            console.log("\x1b[32m");
             console.log(`Executed migration file ${file} successfully !`);
             nbFiles++;
-
-            // All files migrated, go to the next step of waterfall
-            if (files.length - 1 === index) {
-              return callback(null, nbFiles);
-            }
           })
           .catch((err) => {
             // Error = go to the end of the waterfall
             return callback(err, null);
           });
       }
-    });
+    }, undefined);
+    return callback(null, nbFiles);
   });
 }
 
@@ -198,6 +201,7 @@ async function executeQueries(queries) {
     let Q = new Query(sql_query);
     await Q.execute()
       .then((result) => {
+        console.log("\x1b[33m");
         console.log(`Query ${result.command} executed`);
       })
       .catch((err) => {
