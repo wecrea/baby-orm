@@ -91,14 +91,16 @@ const UserModel = {
     config: {
         table: "users",
         use_autoincrement: false, // default true to have numeric ID, otherwise unique string
-        timestamps: true, // add created_at and updated_at fields
-        soft_delete: true, // not really delete in DB, just fill deleted_at field
+        timestamps: true, // if exists created_at and updated_at fields in your table
+        soft_delete: true, // not really delete in DB, just fill deleted_at field if exist in your table
         fillable_fields: ["firstname", "lastname", "email"],
+        hidden_fields: [], // fields not returns when you load a row
         validations: {
             firstname: ["string", "maxLength:64"],
             firstname: ["string", "maxLength:128"],
             email: ["email", "maxLength:128"],
         },
+        relations: [] // load another model linked with this one
     },
     fields: {
         id: null,

@@ -238,10 +238,6 @@ class ORM {
       let params = [],
         i = 1;
       for (let field in data) {
-        if (field === "id") {
-          continue;
-        }
-
         if (this.autoFillableFields.includes(field)) {
           continue;
         }
@@ -267,6 +263,54 @@ class ORM {
           });
       });
     });
+  }
+  updateWhere(data, where) {
+    let query = `UPDATE ${this.currentModel.config.table} SET `;
+    let params = [],
+      i = 1;
+    for (let field in data) {
+      if (this.autoFillableFields.includes(field)) {
+        continue;
+      }
+
+      query += ` ${field} = $${i++}, `;
+      params.push(data[field]);
+    }
+    if (this.currentModel.config.timestamps === true) {
+      query += ` updated_at = $${i++}, `;
+      params.push("NOW()");
+    }
+
+    // delete last space and coma
+    query = query.slice(0, -2) + ` WHERE ${where}`;
+
+    for (let field_w in where) {
+      if (where[field_w].length === 1) {
+        query += ` ${where[field_w]} `;
+      }
+      if (where[field_w].length === 2) {
+        query += ` ${where[field_w][0]} = $${i++} `;
+        params.push(where[field_w][1]);
+      }
+      if (where[field_w].length === 3) {
+        query += ` ${where[field_w][0]} ${where[field_w][1]} $${i++} `;
+        params.push(where[field_w][1]);
+      }
+    }
+
+    return new Promise((resolve, reject) => {
+      let Q = new Query(query, params);
+      Q.execute()
+        .then((result) => {
+          resolve(finalObject);
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
+  }
+  upsert(data, where) {
+    // todo : WIP
   }
   delete(id) {
     if (this.currentModel.config.soft_delete === true) {

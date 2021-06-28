@@ -9,6 +9,7 @@
   ],
   "version": "1.0.2",
   "license": "Apache 2",
+  "type": "module",
   "homepage": "https://github.com/wecrea/baby-orm",
   "repository": "https://github.com/wecrea/baby-orm.git",
   "contributors": [
