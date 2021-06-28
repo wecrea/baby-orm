@@ -160,14 +160,22 @@ function executeFiles(lastFile, callback) {
           return callback(resultExecution, null);
         }
 
-        // Display message and increment counter
-        console.log(`Executed migration file ${file} successfully !`);
-        nbFiles++;
+        let Q = new Query(`INSERT INTO migrations (file) VALUES ($1)`, [file]);
+        await Q.execute()
+          .then((result) => {
+            // Display message and increment counter
+            console.log(`Executed migration file ${file} successfully !`);
+            nbFiles++;
 
-        // All files migrated, go to the next step of waterfall
-        if (files.length - 1 === index) {
-          return callback(null, nbFiles);
-        }
+            // All files migrated, go to the next step of waterfall
+            if (files.length - 1 === index) {
+              return callback(null, nbFiles);
+            }
+          })
+          .catch((err) => {
+            // Error = go to the end of the waterfall
+            return callback(err, null);
+          });
       }
     });
   });
