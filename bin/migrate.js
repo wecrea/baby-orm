@@ -6,15 +6,15 @@ if (process.env.NODE_ENV !== "production") {
   require("dotenv").config();
 }
 
-import { readdir } from "fs";
-import { waterfall } from "async";
-import { base_path, database_dir } from "../src/Config";
-import Query from "../src/Query";
+const fs = require("fs");
+const async = require("async");
+const Config = require("../src/Config");
+const Query = require("../src/Query");
 
 console.log("Start migration process");
 
 // use waterfall to have a synchronous process
-waterfall(
+async.waterfall(
   [checkMigrationTable, createMigrationTable, getLastMigration, executeFiles],
   (err, result) => {
     if (err) {
@@ -119,10 +119,10 @@ function executeFiles(lastFile, callback) {
   }
 
   // Define the working directory
-  const working_dir = `${base_path}/${database_dir}/migration`;
+  const working_dir = `${Config.base_path}/${Config.database_dir}/migration`;
 
   // Read directory
-  readdir(working_dir, (err, files) => {
+  fs.readdir(working_dir, (err, files) => {
     if (err) {
       return callback(err, null);
     }
@@ -147,7 +147,7 @@ function executeFiles(lastFile, callback) {
       }
 
       // Load file
-      import migration_file_content from working_dir + "/" + file;
+      let migration_file_content = require(working_dir + "/" + file);
 
       // Only if there is many queries in the file
       if (migration_file_content.queries.length > 0) {

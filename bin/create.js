@@ -28,7 +28,7 @@ const query_type =
 
 // Default content of SQL file
 const init_content = `//auto-generated SQL Migration file
-export default {
+module.exports = {
   queries: [
     \`${query_type} ${table_name} (
       id SERIAL PRIMARY KEY,
