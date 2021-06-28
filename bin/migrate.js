@@ -19,7 +19,7 @@ async.waterfall(
   (err, result) => {
     if (err) {
       // called everywhere in waterfall if there is an error
-      console.error(`An error occurred !`, err.message);
+      console.error(`An error occurred :`, err.message);
     } else {
       // Display success message at the end of the process
       console.log(`End of migration, ${result} file(s) imported !`);
@@ -134,7 +134,7 @@ function executeFiles(lastFile, callback) {
 
     // Count files migrated in this batch
     let nbFiles = 0;
-    files.forEach((file, index) => {
+    files.forEach(async (file, index) => {
       // Test if it a new file or not
       if (lastFileDate !== null && lastFileDate >= file.split("-")[0]) {
         // If old file and no file must be migrated, go to the next step of waterfall
@@ -152,32 +152,22 @@ function executeFiles(lastFile, callback) {
       // Only if there is many queries in the file
       if (migration_file_content.queries.length > 0) {
         // Execute all queries in the file
-        executeQueries(migration_file_content.queries)
-          .then(() => {
-            // Migration finished so we add this file in the database
-            let Q = new Query(`INSERT INTO migrations (file) VALUES ($1)`, [
-              file,
-            ]);
-            Q.execute()
-              .then((result) => {
-                // Display message and increment counter
-                console.log(`Executed migration file ${file} successfully !`);
-                nbFiles++;
 
-                // All files migrated, go to the next step of waterfall
-                if (files.length - 1 === index) {
-                  return callback(null, nbFiles);
-                }
-              })
-              .catch((err) => {
-                // Error = go to the end of the waterfall
-                return callback(err, null);
-              });
-          })
-          .catch((err) => {
-            // Error = go to the end of the waterfall
-            return callback(err, null);
-          });
+        let resultExecution = await executeQueries(
+          migration_file_content.queries
+        );
+        if (resultExecution !== true) {
+          return callback(resultExecution, null);
+        }
+
+        // Display message and increment counter
+        console.log(`Executed migration file ${file} successfully !`);
+        nbFiles++;
+
+        // All files migrated, go to the next step of waterfall
+        if (files.length - 1 === index) {
+          return callback(null, nbFiles);
+        }
       }
     });
   });
@@ -186,24 +176,25 @@ function executeFiles(lastFile, callback) {
 /**
  * Execute all queries in the SQL file
  * @param {Array} queries List of queries
- * @returns {Promise}
+ * @returns {Boolean, String}
  */
 async function executeQueries(queries) {
-  return new Promise((resolve, reject) => {
-    // Each query executed one after the other
-    queries.forEach(async (sql_query, index, array) => {
-      let Q = new Query(sql_query);
-      Q.execute()
-        .then((result) => {
-          // If all queries executed, resolve the promise
-          if (array.length - 1 === index) {
-            return resolve();
-          }
-        })
-        .catch((err) => {
-          // Reject at the first error
-          return reject(err);
-        });
-    });
-  });
+  let lastError = null;
+  await queries.reduce(async (memo, sql_query) => {
+    await memo;
+
+    if (lastError) {
+      return;
+    }
+
+    let Q = new Query(sql_query);
+    await Q.execute()
+      .then((result) => {
+        console.log(`Query ${result.command} executed`);
+      })
+      .catch((err) => {
+        lastError = err;
+      });
+  }, undefined);
+  return lastError || true;
 }
