@@ -229,10 +229,64 @@ class ORM {
     });
   }
   update(id, data) {
-    this.findById(id).then((result) => {
+    return new Promise((resolve, reject) => {
+      this.findById(id).then((result) => {
+        let finalObject = this.currentModel.fill(data);
+
+        // Valid result with Model Validations
+        let validResult = Validator.execute(
+          finalObject,
+          this.currentModel.config.validations
+        );
+        if (validResult === false) {
+          // We have errors, store them and return false to the parent
+          this.errors = Validator.getErrors();
+          reject(false);
+        }
+
+        let query = `UPDATE ${this.currentModel.config.table} SET `;
+        let params = [],
+          i = 1;
+        for (let field in data) {
+          if (this.autoFillableFields.includes(field)) {
+            continue;
+          }
+
+          query += ` ${field} = $${i++}, `;
+          params.push(data[field]);
+        }
+        if (this.currentModel.config.timestamps === true) {
+          query += ` updated_at = $${i++}, `;
+          params.push("NOW()");
+        }
+        query = query.slice(0, -2) + ` WHERE id = $${i}`;
+        params.push(id);
+
+        let Q = new Query(query, params);
+        Q.execute()
+          .then((result) => {
+            resolve(finalObject);
+          })
+          .catch((e) => {
+            reject(e);
+          });
+      });
+    });
+  }
+  updateWhere(data, where) {
+    return new Promise((resolve, reject) => {
       let finalObject = this.currentModel.fill(data);
 
-      // todo : validator call
+      // Valid result with Model Validations
+      let validResult = Validator.execute(
+        finalObject,
+        this.currentModel.config.validations
+      );
+      if (validResult === false) {
+        // We have errors, store them and return false to the parent
+        this.errors = Validator.getErrors();
+        reject(false);
+      }
 
       let query = `UPDATE ${this.currentModel.config.table} SET `;
       let params = [],
@@ -249,56 +303,24 @@ class ORM {
         query += ` updated_at = $${i++}, `;
         params.push("NOW()");
       }
-      query = query.slice(0, -2) + ` WHERE id = $${i}`;
-      params.push(id);
 
-      return new Promise((resolve, reject) => {
-        let Q = new Query(query, params);
-        Q.execute()
-          .then((result) => {
-            resolve(finalObject);
-          })
-          .catch((e) => {
-            reject(e);
-          });
-      });
-    });
-  }
-  updateWhere(data, where) {
-    let query = `UPDATE ${this.currentModel.config.table} SET `;
-    let params = [],
-      i = 1;
-    for (let field in data) {
-      if (this.autoFillableFields.includes(field)) {
-        continue;
+      // delete last space and coma
+      query = query.slice(0, -2) + ` WHERE ${where}`;
+
+      for (let field_w in where) {
+        if (where[field_w].length === 1) {
+          query += ` ${where[field_w]} `;
+        }
+        if (where[field_w].length === 2) {
+          query += ` ${where[field_w][0]} = $${i++} `;
+          params.push(where[field_w][1]);
+        }
+        if (where[field_w].length === 3) {
+          query += ` ${where[field_w][0]} ${where[field_w][1]} $${i++} `;
+          params.push(where[field_w][1]);
+        }
       }
 
-      query += ` ${field} = $${i++}, `;
-      params.push(data[field]);
-    }
-    if (this.currentModel.config.timestamps === true) {
-      query += ` updated_at = $${i++}, `;
-      params.push("NOW()");
-    }
-
-    // delete last space and coma
-    query = query.slice(0, -2) + ` WHERE ${where}`;
-
-    for (let field_w in where) {
-      if (where[field_w].length === 1) {
-        query += ` ${where[field_w]} `;
-      }
-      if (where[field_w].length === 2) {
-        query += ` ${where[field_w][0]} = $${i++} `;
-        params.push(where[field_w][1]);
-      }
-      if (where[field_w].length === 3) {
-        query += ` ${where[field_w][0]} ${where[field_w][1]} $${i++} `;
-        params.push(where[field_w][1]);
-      }
-    }
-
-    return new Promise((resolve, reject) => {
       let Q = new Query(query, params);
       Q.execute()
         .then((result) => {
@@ -309,8 +331,63 @@ class ORM {
         });
     });
   }
-  upsert(data, where) {
-    // todo : WIP
+  upsert(data, conflict_field) {
+    return new Promise((resolve, reject) => {
+      let finalObject = this.currentModel.fill(data);
+
+      // Valid result with Model Validations
+      let validResult = Validator.execute(
+        finalObject,
+        this.currentModel.config.validations
+      );
+      if (validResult === false) {
+        // We have errors, store them and return false to the parent
+        this.errors = Validator.getErrors();
+        reject(false);
+      }
+
+      let query = `INSERT INTO ${this.currentModel.config.table} `;
+      let fields = [],
+        values = [],
+        params = [],
+        i = 1;
+
+      // for each field, created an entry
+      for (let field in object) {
+        // Field is fillable ?
+        if (this.autoFillableFields.includes(field)) {
+          continue;
+        }
+
+        fields.push(field);
+        values.push("$" + i++);
+        params.push(object[field]);
+      }
+
+      // Make the query with all field and values (returning ID to load Object after)
+      query += ` (${fields.join(",")}) VALUES (${values.join(",")}) `;
+      query += `ON CONFLICT (${conflict_field}) DO UPDATE SET `;
+
+      // Make update part
+      for (let j in fields) {
+        if (fields[j] === conflict_field) {
+          continue;
+        }
+        query += ` ${fields[j]} = ${values[j]}, `;
+      }
+
+      // Remove last coma and space
+      query = query.slice(0, -2);
+
+      let Q = new Query(query, params);
+      Q.execute()
+        .then((result) => {
+          resolve(finalObject);
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
   }
   delete(id) {
     if (this.currentModel.config.soft_delete === true) {
@@ -334,6 +411,10 @@ class ORM {
   }
   save() {
     // todo : save current object with update if exists id, create otherwise
+    throw new BabyOrmError(
+      `OrmError`,
+      `Method not implemented for the moment, sorry !`
+    );
   }
   load(relation_name) {
     if (this.currentModel.config.relations.includes(relation_name) === false) {
