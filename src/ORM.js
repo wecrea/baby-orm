@@ -181,7 +181,7 @@ class ORM {
         });
     });
   }
-  find(data) {
+  findOne(data) {
     let query = `SELECT * FROM ${this.currentModel.config.table} `;
     let params = [];
     if (data) {
@@ -205,7 +205,7 @@ class ORM {
         });
     });
   }
-  findAll(data) {
+  findMany(data) {
     let query = `SELECT * FROM ${this.currentModel.config.table} `;
     let params = [];
     if (data) {
@@ -219,8 +219,11 @@ class ORM {
       let Q = new Query(query, params);
       Q.execute()
         .then((result) => {
-          let res = this.currentModel.fill(result.rows);
-          resolve(res);
+          let finalArray = [];
+          for (let row of result.rows) {
+            finalArray.push(this.currentModel.fill(row));
+          }
+          resolve(finalArray);
         })
         .catch((e) => {
           // Error, please log me somewhere ^^

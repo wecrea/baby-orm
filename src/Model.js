@@ -49,7 +49,21 @@ class Model {
    * @returns {Object}
    */
   getObject() {
-    return this.fields;
+    // Copy object in a variable to manipulate it
+    let object = this.fields;
+
+    // If we have some hidden fields
+    if (this.config.hidden_fields.length > 0) {
+      // Delete all hidden fields if exist in obejct
+      for (let field_name of this.config.hidden_fields) {
+        if (object[field_name] !== undefined) {
+          delete object[field_name];
+        }
+      }
+    }
+
+    // return modified object
+    return object;
   }
 
   /**
