@@ -108,6 +108,60 @@ class Query {
       throw new BabyOrmError("QueryError", err.message);
     }
   }
+
+  async getRow() {
+    // Error if there is no current query
+    if (Validator.emptyOrNull(this.query)) {
+      throw new BabyOrmError(
+        "Empty Query",
+        "It seems the SQL query is empty and can not be executed"
+      );
+    }
+
+    try {
+      let result = null;
+
+      if (this.params === null || this.params.length === 0) {
+        // Execute without parameters
+        result = await this.pool.query(this.query);
+      } else {
+        // Execute with parameters
+        result = await this.pool.query(this.query, this.params);
+      }
+
+      // Return only the first row
+      return result.rows[0];
+    } catch (err) {
+      throw new BabyOrmError("QueryError", err.message);
+    }
+  }
+
+  async getValue(name) {
+    // Error if there is no current query
+    if (Validator.emptyOrNull(this.query)) {
+      throw new BabyOrmError(
+        "Empty Query",
+        "It seems the SQL query is empty and can not be executed"
+      );
+    }
+
+    try {
+      let result = null;
+
+      if (this.params === null || this.params.length === 0) {
+        // Execute without parameters
+        result = await this.pool.query(this.query);
+      } else {
+        // Execute with parameters
+        result = await this.pool.query(this.query, this.params);
+      }
+
+      // Return only the first row
+      return result.rows[0][name];
+    } catch (err) {
+      throw new BabyOrmError("QueryError", err.message);
+    }
+  }
 }
 
 module.exports = Query;
