@@ -416,16 +416,32 @@ class ORM {
       `Method not implemented for the moment, sorry !`
     );
   }
-  load(relation_name) {
+  async load(relation_name) {
     if (this.currentModel.config.relations.includes(relation_name) === false) {
       throw new BabyOrmError(
         `OrmError`,
         `Can not find relation ${relation_name} for model ${this.currentModel.config.file}`
       );
     }
+
+    let relation = this.currentModel.config.relations[relation_name];
+    let relationModel = new Model(relation.name);
+
     // todo : load relation
+    try {
+      let Q = new Query(
+        `SELECT * FROM ${relationModel.config.table} WHERE ${relation.distant_field} = $1`,
+        [this.currentModel.fields[relation.local_field]]
+      );
+      let result = await Q.execute();
+      return Validator.emptyOrNull(result) ? {} : relationModel.fill(result);
+    } catch (err) {
+      throw new BabyOrmError(
+        `OrmError`,
+        `Can not load relation ${relation_name} for model ${this.currentModel.config.file}`
+      );
+    }
   }
-  validate(object) {}
 }
 
 module.exports = new ORM();
