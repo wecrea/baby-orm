@@ -1,4 +1,5 @@
 const moment = require("moment");
+const Query = require("./Query");
 
 class Validator {
   /**
@@ -376,9 +377,21 @@ class Validator {
    * @param {String} data format = table,column
    * @returns {Boolean}
    */
-  exist(field_name, value, data) {
+  async exist(field_name, value, data) {
     let { table, column } = data.split(",");
-    // todo: implements that code ?
+    let Q = new Query(
+      `SELECT COUNT(*) AS total FROM ${table} WHERE ${column} = $1`,
+      [value]
+    );
+    try {
+      let result = await Q.execute();
+      return result.total > 0;
+    } catch (err) {
+      this.errors.push(
+        `Field ${field_name} must exist in database (received : ${value})`
+      );
+      return false;
+    }
     return true;
   }
 
