@@ -183,7 +183,8 @@ class ORM {
   }
   findOne(where, order_by = []) {
     let query = `SELECT * FROM ${this.currentModel.config.table} `;
-    let params = [];
+    let params = [],
+      i = 1;
     if (where) {
       query += ` WHERE `;
       if (typeof where === "string") {
@@ -225,7 +226,8 @@ class ORM {
   }
   findMany(where, order_by = []) {
     let query = `SELECT * FROM ${this.currentModel.config.table} `;
-    let params = [];
+    let params = [],
+      i = 1;
     if (where) {
       query += ` WHERE `;
       if (typeof where === "string") {
