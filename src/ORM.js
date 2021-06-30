@@ -117,7 +117,7 @@ class ORM {
 
       async.waterfall(
         [
-          function (cb) {
+          (cb) => {
             // Execute INSERT query to create entry in DB
             let Q = new Query(query);
             if (params.length > 0) {
@@ -133,11 +133,11 @@ class ORM {
                 cb(e);
               });
           },
-          function (result, cb) {
+          (result, cb) => {
             // Retrieve new object in DB
             let Q = new Query(
               `SELECT * FROM ${this.currentModel.config.table} WHERE id = $1 LIMIT 1`,
-              result
+              [result]
             );
             Q.execute()
               .then((result) => {
@@ -150,7 +150,7 @@ class ORM {
               });
           },
         ],
-        function (err, data) {
+        (err, data) => {
           if (err) {
             // Error part
             this.errors.push(err.toString());
@@ -158,7 +158,7 @@ class ORM {
           }
 
           // Fill result in an object form the model fields
-          let result = this.currentModel.fill(data);
+          let result = this.currentModel.complete(data);
 
           // Return it to the caller
           resolve(result);
@@ -172,7 +172,7 @@ class ORM {
       let Q = new Query(query, [id]);
       Q.execute()
         .then((result) => {
-          let res = this.currentModel.fill(result.rows[0]);
+          let res = this.currentModel.complete(result.rows[0]);
           resolve(res);
         })
         .catch((e) => {
@@ -181,22 +181,40 @@ class ORM {
         });
     });
   }
-  findOne(data) {
+  findOne(where, order_by = []) {
     let query = `SELECT * FROM ${this.currentModel.config.table} `;
     let params = [];
-    if (data) {
+    if (where) {
       query += ` WHERE `;
-      for (let key in data) {
-        query += ` ${key} = $` + (params.length + 1);
-        params.push(data[key]);
+      if (typeof where === "string") {
+        query += ` ${where} `;
+      } else {
+        for (let field_w in where) {
+          if (where[field_w].length === 1) {
+            query += ` ${where[field_w]} `;
+          }
+          if (where[field_w].length === 2) {
+            query += ` ${where[field_w][0]} = $${i++} `;
+            params.push(where[field_w][1]);
+          }
+          if (where[field_w].length === 3) {
+            query += ` ${where[field_w][0]} ${where[field_w][1]} $${i++} `;
+            params.push(where[field_w][1]);
+          }
+        }
       }
     }
+
+    if (order_by.length > 0) {
+      query += ` ORDER BY ${order_by[0]} ${order_by[1]} `;
+    }
+
     query += ` LIMIT 1`;
     return new Promise((resolve, reject) => {
       let Q = new Query(query, params);
       Q.execute()
         .then((result) => {
-          let res = this.currentModel.fill(result.rows[0]);
+          let res = this.currentModel.complete(result.rows[0]);
           resolve(res);
         })
         .catch((e) => {
@@ -205,23 +223,42 @@ class ORM {
         });
     });
   }
-  findMany(data) {
+  findMany(where, order_by = []) {
     let query = `SELECT * FROM ${this.currentModel.config.table} `;
     let params = [];
-    if (data) {
+    if (where) {
       query += ` WHERE `;
-      for (let key in data) {
-        query += ` ${key} = $` + (params.length + 1);
-        params.push(data[key]);
+      if (typeof where === "string") {
+        query += ` ${where} `;
+      } else {
+        for (let field_w in where) {
+          if (where[field_w].length === 1) {
+            query += ` ${where[field_w]} `;
+          }
+          if (where[field_w].length === 2) {
+            query += ` ${where[field_w][0]} = $${i++} `;
+            params.push(where[field_w][1]);
+          }
+          if (where[field_w].length === 3) {
+            query += ` ${where[field_w][0]} ${where[field_w][1]} $${i++} `;
+            params.push(where[field_w][1]);
+          }
+        }
       }
     }
+
+    if (order_by.length > 0) {
+      query += ` ORDER BY ${order_by[0]} ${order_by[1]} `;
+    }
+
     return new Promise((resolve, reject) => {
       let Q = new Query(query, params);
       Q.execute()
         .then((result) => {
           let finalArray = [];
           for (let row of result.rows) {
-            finalArray.push(this.currentModel.fill(row));
+            let obj = this.currentModel.complete(row);
+            finalArray.push({ ...obj });
           }
           resolve(finalArray);
         })
@@ -231,7 +268,7 @@ class ORM {
         });
     });
   }
-  update(id, data) {
+  update(id, data, force = false) {
     return new Promise((resolve, reject) => {
       this.findById(id).then((result) => {
         let finalObject = this.currentModel.fill(data);
@@ -251,7 +288,7 @@ class ORM {
         let params = [],
           i = 1;
         for (let field in data) {
-          if (this.autoFillableFields.includes(field)) {
+          if (this.autoFillableFields.includes(field) && force === false) {
             continue;
           }
 
@@ -394,9 +431,13 @@ class ORM {
   }
   delete(id) {
     if (this.currentModel.config.soft_delete === true) {
-      return this.update(id, {
-        deleted_at: "NOW()",
-      });
+      return this.update(
+        id,
+        {
+          deleted_at: "NOW()",
+        },
+        true
+      );
     }
     let query = `DELETE FROM ${this.currentModel.config.table} WHERE id = $1 `;
     let params = [id];
@@ -430,14 +471,15 @@ class ORM {
     let relation = this.currentModel.config.relations[relation_name];
     let relationModel = new Model(relation.name);
 
-    // todo : load relation
     try {
       let Q = new Query(
         `SELECT * FROM ${relationModel.config.table} WHERE ${relation.distant_field} = $1`,
         [this.currentModel.fields[relation.local_field]]
       );
       let result = await Q.execute();
-      return Validator.emptyOrNull(result) ? {} : relationModel.fill(result);
+      return Validator.emptyOrNull(result)
+        ? {}
+        : relationModel.complete(result);
     } catch (err) {
       throw new BabyOrmError(
         `OrmError`,

@@ -81,11 +81,22 @@ class Model {
    * @returns {Object}
    */
   fill(data) {
-    for (let prop in data) {
+    for (const [key, value] of Object.entries(data)) {
       // Only if field is fillable
-      if (prop in this.config.fillable_fields) {
-        this.fields[prop] = data[prop];
+      if (this.config.fillable_fields.includes(key)) {
+        this.fields[key] = value;
       }
+    }
+    return this.fields;
+  }
+
+  complete(data) {
+    for (const [key, value] of Object.entries(data)) {
+      // Only if field is fillable
+      if (this.config.hidden_fields.includes(key)) {
+        continue;
+      }
+      this.fields[key] = value;
     }
     return this.fields;
   }
