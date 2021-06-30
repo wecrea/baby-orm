@@ -191,6 +191,9 @@ class ORM {
         query += ` ${where} `;
       } else {
         for (let field_w in where) {
+          if (field_w > 0) {
+            query += ` AND `;
+          }
           if (where[field_w].length === 1) {
             query += ` ${where[field_w]} `;
           }
@@ -234,6 +237,9 @@ class ORM {
         query += ` ${where} `;
       } else {
         for (let field_w in where) {
+          if (field_w > 0) {
+            query += ` AND `;
+          }
           if (where[field_w].length === 1) {
             query += ` ${where[field_w]} `;
           }
@@ -350,6 +356,9 @@ class ORM {
       query = query.slice(0, -2) + ` WHERE ${where}`;
 
       for (let field_w in where) {
+        if (field_w > 0) {
+          query += ` AND `;
+        }
         if (where[field_w].length === 1) {
           query += ` ${where[field_w]} `;
         }
