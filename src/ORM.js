@@ -304,28 +304,48 @@ class ORM {
       }
     }
 
+    let query_total = query.replace("SELECT *", "SELECT COUNT(*) AS total");
+
+    // Order by
     if (order_by.length > 0) {
       query += ` ORDER BY ${order_by[0]} ${order_by[1]} `;
     }
 
+    // Limit for pagination
     let offset = (page > 0 ? page - 1 : 0) * limit;
     query += ` LIMIT ${limit} OFFSET ${offset}`;
 
-    return new Promise((resolve, reject) => {
-      let Q = new Query(query, params);
-      Q.execute()
-        .then((result) => {
-          let finalArray = [];
-          for (let row of result.rows) {
-            let obj = this.currentModel.complete(row);
-            finalArray.push({ ...obj });
-          }
-          resolve(finalArray);
-        })
-        .catch((e) => {
-          // Error, please log me somewhere ^^
-          reject(e);
-        });
+    return new Promise(async (resolve, reject) => {
+      try {
+        let Q_total = new Query(query_total, params);
+        let result_total = await Q_total.execute();
+        let total = parseInt(result_total.rows[0].total);
+        let resultFinal = {
+          total: total,
+          nb_page: Math.ceil(total / parseInt(limit)),
+          current_page: page,
+          nb_per_page: limit,
+          data: [],
+        };
+
+        let Q = new Query(query, params);
+        Q.execute()
+          .then((result) => {
+            let finalArray = [];
+            for (let row of result.rows) {
+              let obj = this.currentModel.complete(row);
+              finalArray.push({ ...obj });
+            }
+            resultFinal.data = finalArray;
+            resolve(resultFinal);
+          })
+          .catch((e) => {
+            // Error, please log me somewhere ^^
+            reject(e);
+          });
+      } catch (err) {
+        reject(err);
+      }
     });
   }
   update(id, data, force = false) {
