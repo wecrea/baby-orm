@@ -276,6 +276,58 @@ class ORM {
         });
     });
   }
+  findManyPaginate(where, page = 1, limit = 25, order_by = []) {
+    let query = `SELECT * FROM ${this.currentModel.config.table} `;
+    let params = [],
+      i = 1;
+    if (where) {
+      query += ` WHERE `;
+      if (typeof where === "string") {
+        query += ` ${where} `;
+      } else {
+        for (let field_w in where) {
+          if (field_w > 0) {
+            query += ` AND `;
+          }
+          if (where[field_w].length === 1) {
+            query += ` ${where[field_w]} `;
+          }
+          if (where[field_w].length === 2) {
+            query += ` ${where[field_w][0]} = $${i++} `;
+            params.push(where[field_w][1]);
+          }
+          if (where[field_w].length === 3) {
+            query += ` ${where[field_w][0]} ${where[field_w][1]} $${i++} `;
+            params.push(where[field_w][1]);
+          }
+        }
+      }
+    }
+
+    if (order_by.length > 0) {
+      query += ` ORDER BY ${order_by[0]} ${order_by[1]} `;
+    }
+
+    let offset = (page > 0 ? page - 1 : 0) * limit;
+    query += ` LIMIT ${limit} OFFSET ${offset}`;
+
+    return new Promise((resolve, reject) => {
+      let Q = new Query(query, params);
+      Q.execute()
+        .then((result) => {
+          let finalArray = [];
+          for (let row of result.rows) {
+            let obj = this.currentModel.complete(row);
+            finalArray.push({ ...obj });
+          }
+          resolve(finalArray);
+        })
+        .catch((e) => {
+          // Error, please log me somewhere ^^
+          reject(e);
+        });
+    });
+  }
   update(id, data, force = false) {
     return new Promise((resolve, reject) => {
       this.findById(id).then((result) => {
