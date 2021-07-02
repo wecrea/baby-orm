@@ -96,7 +96,7 @@ class ORM {
       // Manage id field : auto-increment or generated ?
       if (
         this.currentModel.config.use_autoincrement === false &&
-        "id" in this.currentModel.fields
+        this.currentModel.fields.id
       ) {
         fields.push("id");
         values.push("$" + i++);
