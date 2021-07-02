@@ -21,10 +21,7 @@ module.exports = {
    */
   defineProperty(target, key, descriptor) {
     if (target.config.fillable_fields.includes(key) === false) {
-      throw new BabyOrmError(
-        `ModelHandlerError`,
-        `Can not modify field ${key} because it is protected in write !`
-      );
+      throw new BabyOrmError(`ModelHandlerError`, `Can not modify field ${key} because it is protected in write !`);
     }
     return true;
   },
@@ -51,13 +48,13 @@ module.exports = {
    */
   get(target, prop, receiver) {
     // If property exists in fields list, return its value
-    if (prop in target.fields) {
+    if (typeof target.fields !== "undefined" && typeof target.fields[prop] !== "undefined") {
       return target.getField(prop);
     }
 
     // Perhaps it is a method get
     const method = "get" + Helpers.ucfirst(prop);
-    if (method in target.methods) {
+    if (typeof target.methods[method] === "function") {
       return target.methods[method]();
     }
 
@@ -74,10 +71,7 @@ module.exports = {
    */
   set(target, prop, value) {
     if (target.config.fillable_fields.includes(prop) === false) {
-      throw new BabyOrmError(
-        `ModelHandlerError`,
-        `Can not modify field ${prop} because it is not fillable !`
-      );
+      throw new BabyOrmError(`ModelHandlerError`, `Can not modify field ${prop} because it is not fillable !`);
     } else {
       return Reflect.set(...arguments);
     }
@@ -92,10 +86,7 @@ module.exports = {
    */
   apply: function (target, thisArg, argumentsList) {
     if (typeof target.methods[thisArg] !== "function") {
-      throw new BabyOrmError(
-        `ModelHandlerError`,
-        `Method ${thisArg} seems not exist for model`
-      );
+      throw new BabyOrmError(`ModelHandlerError`, `Method ${thisArg} seems not exist for model`);
     }
     return target[thisArg](...argumentsList);
   },

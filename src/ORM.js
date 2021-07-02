@@ -62,14 +62,12 @@ class ORM {
       let object = this.currentModel.fill(data);
 
       // Valid result with Model Validations
-      let validResult = Validator.execute(
-        object,
-        this.currentModel.config.validations
-      );
+      let validResult = Validator.execute(object, this.currentModel.config.validations);
       if (validResult === false) {
         // We have errors, store them and return false to the parent
         this.errors = Validator.getErrors();
         reject(false);
+        return false;
       }
 
       // Initialize INSERT query string
@@ -94,10 +92,7 @@ class ORM {
       // Special cases :-)
 
       // Manage id field : auto-increment or generated ?
-      if (
-        this.currentModel.config.use_autoincrement === false &&
-        this.currentModel.fields.id
-      ) {
+      if (this.currentModel.config.use_autoincrement === false && this.currentModel.fields.id !== undefined) {
         fields.push("id");
         values.push("$" + i++);
         params.push(Helpers.uniqid());
@@ -111,9 +106,7 @@ class ORM {
       }
 
       // Make the query with all field and values (returning ID to load Object after)
-      query += ` (${fields.join(",")}) VALUES (${values.join(
-        ","
-      )}) RETURNING id`;
+      query += ` (${fields.join(",")}) VALUES (${values.join(",")}) RETURNING id`;
 
       async.waterfall(
         [
@@ -135,10 +128,7 @@ class ORM {
           },
           (result, cb) => {
             // Retrieve new object in DB
-            let Q = new Query(
-              `SELECT * FROM ${this.currentModel.config.table} WHERE id = $1 LIMIT 1`,
-              [result]
-            );
+            let Q = new Query(`SELECT * FROM ${this.currentModel.config.table} WHERE id = $1 LIMIT 1`, [result]);
             Q.execute()
               .then((result) => {
                 // OK, we get the row and go to the callback
@@ -155,6 +145,7 @@ class ORM {
             // Error part
             this.errors.push(err.toString());
             reject(err);
+            return false;
           }
 
           // Fill result in an object form the model fields
@@ -185,7 +176,7 @@ class ORM {
     let query = `SELECT * FROM ${this.currentModel.config.table} `;
     let params = [],
       i = 1;
-    if (where) {
+    if (typeof where !== "undefined" && where.length > 0) {
       query += ` WHERE `;
       if (typeof where === "string") {
         query += ` ${where} `;
@@ -231,7 +222,7 @@ class ORM {
     let query = `SELECT * FROM ${this.currentModel.config.table} `;
     let params = [],
       i = 1;
-    if (where) {
+    if (typeof where !== "undefined" && where.length > 0) {
       query += ` WHERE `;
       if (typeof where === "string") {
         query += ` ${where} `;
@@ -280,7 +271,7 @@ class ORM {
     let query = `SELECT * FROM ${this.currentModel.config.table} `;
     let params = [],
       i = 1;
-    if (where) {
+    if (typeof where !== "undefined" && where.length > 0) {
       query += ` WHERE `;
       if (typeof where === "string") {
         query += ` ${where} `;
@@ -314,6 +305,9 @@ class ORM {
     // Limit for pagination
     let offset = (page > 0 ? page - 1 : 0) * limit;
     query += ` LIMIT ${limit} OFFSET ${offset}`;
+
+    console.log(query);
+    console.log(query_total);
 
     return new Promise(async (resolve, reject) => {
       try {
@@ -354,10 +348,7 @@ class ORM {
         let finalObject = this.currentModel.fill(data);
 
         // Valid result with Model Validations
-        let validResult = Validator.execute(
-          finalObject,
-          this.currentModel.config.validations
-        );
+        let validResult = Validator.execute(finalObject, this.currentModel.config.validations);
         if (validResult === false) {
           // We have errors, store them and return false to the parent
           this.errors = Validator.getErrors();
@@ -398,10 +389,7 @@ class ORM {
       let finalObject = this.currentModel.fill(data);
 
       // Valid result with Model Validations
-      let validResult = Validator.execute(
-        finalObject,
-        this.currentModel.config.validations
-      );
+      let validResult = Validator.execute(finalObject, this.currentModel.config.validations);
       if (validResult === false) {
         // We have errors, store them and return false to the parent
         this.errors = Validator.getErrors();
@@ -459,10 +447,7 @@ class ORM {
       let finalObject = this.currentModel.fill(data);
 
       // Valid result with Model Validations
-      let validResult = Validator.execute(
-        finalObject,
-        this.currentModel.config.validations
-      );
+      let validResult = Validator.execute(finalObject, this.currentModel.config.validations);
       if (validResult === false) {
         // We have errors, store them and return false to the parent
         this.errors = Validator.getErrors();
@@ -529,7 +514,7 @@ class ORM {
       let Q = new Query(query, params);
       Q.execute()
         .then((result) => {
-          resolve(result);
+          resolve(result.rowCount);
         })
         .catch((e) => {
           reject(e);
@@ -538,36 +523,22 @@ class ORM {
   }
   save() {
     // todo : save current object with update if exists id, create otherwise
-    throw new BabyOrmError(
-      `OrmError`,
-      `Method not implemented for the moment, sorry !`
-    );
+    throw new BabyOrmError(`OrmError`, `Method not implemented for the moment, sorry !`);
   }
   async load(relation_name) {
     if (this.currentModel.config.relations.includes(relation_name) === false) {
-      throw new BabyOrmError(
-        `OrmError`,
-        `Can not find relation ${relation_name} for model ${this.currentModel.config.file}`
-      );
+      throw new BabyOrmError(`OrmError`, `Can not find relation ${relation_name} for model ${this.currentModel.config.file}`);
     }
 
     let relation = this.currentModel.config.relations[relation_name];
     let relationModel = new Model(relation.name);
 
     try {
-      let Q = new Query(
-        `SELECT * FROM ${relationModel.config.table} WHERE ${relation.distant_field} = $1`,
-        [this.currentModel.fields[relation.local_field]]
-      );
+      let Q = new Query(`SELECT * FROM ${relationModel.config.table} WHERE ${relation.distant_field} = $1`, [this.currentModel.fields[relation.local_field]]);
       let result = await Q.execute();
-      return Validator.emptyOrNull(result)
-        ? {}
-        : relationModel.complete(result);
+      return Validator.emptyOrNull(result) ? {} : relationModel.complete(result);
     } catch (err) {
-      throw new BabyOrmError(
-        `OrmError`,
-        `Can not load relation ${relation_name} for model ${this.currentModel.config.file}`
-      );
+      throw new BabyOrmError(`OrmError`, `Can not load relation ${relation_name} for model ${this.currentModel.config.file}`);
     }
   }
 }

@@ -11,11 +11,7 @@ class Model {
    */
   constructor(name) {
     // create path to load correct file
-    const path = [
-      Config.base_path,
-      Config.models_dir,
-      `${name.toLowerCase()}.model.js`,
-    ];
+    const path = [Config.base_path, Config.models_dir, `${name.toLowerCase()}.model.js`];
 
     let file = path.join("/");
     if (fs.existsSync(file) === false) {
@@ -26,19 +22,19 @@ class Model {
 
     // Initialize config
     this.config = {
-      table: model.config.table || name,
-      use_autoincrement: model.config.use_autoincrement || true,
-      timestamps: model.config.timestamps || true,
-      soft_delete: model.config.soft_delete || false,
-      fillable_fields: model.config.fillable_fields || null,
-      hidden_fields: model.config.hidden_fields || [],
-      validations: model.config.validations || {},
-      relations: model.config.relations || [],
+      table: typeof model.config.table !== "undefined" ? model.config.table : name,
+      use_autoincrement: typeof model.config.use_autoincrement !== "undefined" ? model.config.use_autoincrement : true,
+      timestamps: typeof model.config.timestamps !== "undefined" ? model.config.timestamps : true,
+      soft_delete: typeof model.config.soft_delete !== "undefined" ? model.config.soft_delete : false,
+      fillable_fields: typeof model.config.fillable_fields !== "undefined" ? model.config.fillable_fields : null,
+      hidden_fields: typeof model.config.hidden_fields !== "undefined" ? model.config.hidden_fields : [],
+      validations: typeof model.config.validations !== "undefined" ? model.config.validations : {},
+      relations: typeof model.config.relations !== "undefined" ? model.config.relations : [],
     };
 
     // Initialize fields and methods
     this.fields = model.fields;
-    this.methods = model.methods || {};
+    this.methods = typeof model.methods !== "undefined" ? model.methods : {};
 
     // crate proxy to access methods and fields directly
     return new Proxy(this, ModelHandler);
@@ -81,6 +77,9 @@ class Model {
    * @returns {Object}
    */
   fill(data) {
+    if (data === undefined || data === null) {
+      return this.fields;
+    }
     for (const [key, value] of Object.entries(data)) {
       // Only if field is fillable
       if (this.config.fillable_fields.includes(key)) {
@@ -91,6 +90,9 @@ class Model {
   }
 
   complete(data) {
+    if (data === undefined || data === null) {
+      return this.fields;
+    }
     for (const [key, value] of Object.entries(data)) {
       // Only if field is fillable
       if (this.config.hidden_fields.includes(key)) {
