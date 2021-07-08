@@ -163,7 +163,7 @@ class ORM {
       let Q = new Query(query, [id]);
       Q.execute()
         .then((result) => {
-          let res = this.currentModel.complete(result.rows[0]);
+          let res = result.rowCount === 1 ? this.currentModel.complete(result.rows[0]) : null;
           resolve(res);
         })
         .catch((e) => {
@@ -209,7 +209,7 @@ class ORM {
       let Q = new Query(query, params);
       Q.execute()
         .then((result) => {
-          let res = this.currentModel.complete(result.rows[0]);
+          let res = result.rowCount === 1 ? this.currentModel.complete(result.rows[0]) : null;
           resolve(res);
         })
         .catch((e) => {
@@ -255,9 +255,11 @@ class ORM {
       Q.execute()
         .then((result) => {
           let finalArray = [];
-          for (let row of result.rows) {
-            let obj = this.currentModel.complete(row);
-            finalArray.push({ ...obj });
+          if (result.rowCount > 0) {
+            for (let row of result.rows) {
+              let obj = this.currentModel.complete(row);
+              finalArray.push({ ...obj });
+            }
           }
           resolve(finalArray);
         })
@@ -306,9 +308,6 @@ class ORM {
     let offset = (page > 0 ? page - 1 : 0) * limit;
     query += ` LIMIT ${limit} OFFSET ${offset}`;
 
-    console.log(query);
-    console.log(query_total);
-
     return new Promise(async (resolve, reject) => {
       try {
         let Q_total = new Query(query_total, params);
@@ -326,9 +325,11 @@ class ORM {
         Q.execute()
           .then((result) => {
             let finalArray = [];
-            for (let row of result.rows) {
-              let obj = this.currentModel.complete(row);
-              finalArray.push({ ...obj });
+            if (result.rowCount > 0) {
+              for (let row of result.rows) {
+                let obj = this.currentModel.complete(row);
+                finalArray.push({ ...obj });
+              }
             }
             resultFinal.data = finalArray;
             resolve(resultFinal);
