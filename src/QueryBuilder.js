@@ -107,13 +107,12 @@ class queryBuilder {
     // If null or empty ?
     if (this.objectQuery.where === null) {
       this.objectQuery.where = "";
+    } else {
+      this.objectQuery.where += ` AND `;
     }
 
-    // Condition begins whith WHERE and after we make only AND condition
-    let whereWord = this.objectQuery.where.length > 0 && this.objectQuery.where.indexOf("WHERE") > -1 ? "AND" : "WHERE";
-
     // Complete where condition
-    this.objectQuery.where += ` ${whereWord} (${condition}) `;
+    this.objectQuery.where += ` (${condition}) `;
     return this;
   }
 
@@ -123,15 +122,14 @@ class queryBuilder {
    * @returns {Object} this class
    */
   orWhere(condition) {
-    // Condition begins whith WHERE and after we make only OR condition
-    let whereWord = this.objectQuery.where.includes("WHERE") ? "OR" : "WHERE";
-
     // If null or empty ?
     if (this.objectQuery.where === null) {
       this.objectQuery.where = "";
+    } else {
+      this.objectQuery.where += ` OR `;
     }
 
-    this.objectQuery.where += ` ${whereWord} (${condition}) `;
+    this.objectQuery.where += ` (${condition}) `;
     return this;
   }
 
@@ -141,16 +139,15 @@ class queryBuilder {
    * @returns {Object} this class
    */
   whereNull(field) {
-    // Condition begins whith WHERE and after we make only AND condition
-    let whereWord = this.objectQuery.where.includes("WHERE") ? "AND" : "WHERE";
-
     // If null or empty ?
     if (this.objectQuery.where === null) {
       this.objectQuery.where = "";
+    } else {
+      this.objectQuery.where += ` AND `;
     }
 
     // Complete where condition
-    this.objectQuery.where += ` ${whereWord} (${field} IS NULL) `;
+    this.objectQuery.where += ` (${field} IS NULL) `;
     return this;
   }
 
@@ -160,16 +157,15 @@ class queryBuilder {
    * @returns {Object} this class
    */
   whereNotNull(field) {
-    // Condition begins whith WHERE and after we make only AND condition
-    let whereWord = this.objectQuery.where.includes("WHERE") ? "AND" : "WHERE";
-
     // If null or empty ?
     if (this.objectQuery.where === null) {
       this.objectQuery.where = "";
+    } else {
+      this.objectQuery.where += ` AND `;
     }
 
     // Complete where condition
-    this.objectQuery.where += ` ${whereWord} (${field} IS NOT NULL) `;
+    this.objectQuery.where += ` (${field} IS NOT NULL) `;
     return this;
   }
 
