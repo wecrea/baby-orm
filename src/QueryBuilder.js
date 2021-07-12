@@ -105,7 +105,7 @@ class queryBuilder {
    */
   where(condition) {
     // Condition begins whith WHERE and after we make only AND condition
-    let whereWord = this.objectQuery.where.includes("WHERE") ? "AND" : "WHERE";
+    let whereWord = this.objectQuery.where.length > 0 && this.objectQuery.where.includes("WHERE") ? "AND" : "WHERE";
 
     // If null or empty ?
     if (this.objectQuery.where === null) {
@@ -198,10 +198,7 @@ class queryBuilder {
   offset(nb) {
     // If no limit = error
     if (this.objectQuery.limit === null) {
-      throw new BabyOrmError(
-        `QueryBuilderError`,
-        `Can not set OFFSET if there is no LIMIT`
-      );
+      throw new BabyOrmError(`QueryBuilderError`, `Can not set OFFSET if there is no LIMIT`);
     }
 
     this.objectQuery.limit.offset = nb;
@@ -256,18 +253,11 @@ class queryBuilder {
    */
   getQuery() {
     // Create SELECT part of the query
-    let query =
-      `SELECT ` +
-      (this.objectQuery.select.length > 0
-        ? this.objectQuery.select.join(",")
-        : `*`);
+    let query = `SELECT ` + (this.objectQuery.select.length > 0 ? this.objectQuery.select.join(",") : `*`);
 
     // Make FROM part of the query
     if (Validator.empty(this.objectQuery.from)) {
-      throw new BabyOrmError(
-        `QueryBuilderError`,
-        `You must provide a FROM part to execute the query`
-      );
+      throw new BabyOrmError(`QueryBuilderError`, `You must provide a FROM part to execute the query`);
     }
     query += ` FROM ${this.objectQuery.from} `;
 
@@ -341,11 +331,7 @@ class queryBuilder {
     let q = new Query(this.getQuery());
 
     // If parameters, add them to the query
-    if (
-      typeof this.params === "object" &&
-      this.params !== null &&
-      this.params.length > 0
-    ) {
+    if (typeof this.params === "object" && this.params !== null && this.params.length > 0) {
       q.setParams(this.params);
     }
 
@@ -362,11 +348,7 @@ class queryBuilder {
     let q = new Query(this.getQuery());
 
     // If parameters, add them to the query
-    if (
-      typeof this.params === "object" &&
-      this.params !== null &&
-      this.params.length > 0
-    ) {
+    if (typeof this.params === "object" && this.params !== null && this.params.length > 0) {
       q.setParams(this.params);
     }
 
@@ -430,10 +412,7 @@ class queryBuilder {
   }
   count(field) {
     if (this.realQuery.includes("SELECT")) {
-      throw new BabyOrmError(
-        `QueryBuilderError`,
-        "SELECT instruction already present in the query"
-      );
+      throw new BabyOrmError(`QueryBuilderError`, "SELECT instruction already present in the query");
     }
 
     if (typeof field === "undefined" || field.length === 0) {
