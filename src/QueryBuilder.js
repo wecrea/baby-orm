@@ -104,13 +104,13 @@ class queryBuilder {
    * @returns {Object} this class
    */
   where(condition) {
-    // Condition begins whith WHERE and after we make only AND condition
-    let whereWord = this.objectQuery.where.length > 0 && this.objectQuery.where.includes("WHERE") ? "AND" : "WHERE";
-
     // If null or empty ?
     if (this.objectQuery.where === null) {
       this.objectQuery.where = "";
     }
+
+    // Condition begins whith WHERE and after we make only AND condition
+    let whereWord = this.objectQuery.where.length > 0 && this.objectQuery.where.indexOf("WHERE") > -1 ? "AND" : "WHERE";
 
     // Complete where condition
     this.objectQuery.where += ` ${whereWord} (${condition}) `;
