@@ -22,6 +22,7 @@ class ORM {
    */
   model(name) {
     this.currentModel = new Model(name);
+    this.errors = [];
     return this;
   }
 

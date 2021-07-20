@@ -12,12 +12,12 @@ class queryBuilder {
       select: [],
       from: null,
       join: [],
-      where: null,
+      where: "",
       limit: { nb: null, offset: null },
       group: null,
       order: [],
     };
-    this.params = null;
+    this.params = [];
   }
 
   /**
@@ -117,6 +117,49 @@ class queryBuilder {
   }
 
   /**
+   * Add a condition in the WHERE part
+   * @param {String} field impacted field for the where
+   * @param {Mixed} value value for the where
+   * @returns {Object} this class
+   */
+  where(field, value) {
+    // If null or empty ?
+    if (this.objectQuery.where === null) {
+      this.objectQuery.where = "";
+    } else {
+      this.objectQuery.where += ` AND `;
+    }
+
+    // Complete where condition and add param in object
+    this.objectQuery.where += ` (${field} = $${this.params.length}) `;
+    this.params.push(value);
+
+    return this;
+  }
+
+  /**
+   * Add a condition in the WHERE part
+   * @param {String} field impacted field for the where
+   * @param {String} sign particular sign for the where
+   * @param {Mixed} value value for the where
+   * @returns {Object} this class
+   */
+  where(field, sign, value) {
+    // If null or empty ?
+    if (this.objectQuery.where === null) {
+      this.objectQuery.where = "";
+    } else {
+      this.objectQuery.where += ` AND `;
+    }
+
+    // Complete where condition and params array
+    this.objectQuery.where += ` (${field} ${sign} $${this.params.length}) `;
+    this.params.push(value);
+
+    return this;
+  }
+
+  /**
    * Add a condition in WHERE part with OR (if where part not empty)
    * @param {String} condition condition for the where
    * @returns {Object} this class
@@ -130,6 +173,49 @@ class queryBuilder {
     }
 
     this.objectQuery.where += ` (${condition}) `;
+    return this;
+  }
+
+  /**
+   * Add a condition in the WHERE part
+   * @param {String} field impacted field for the where
+   * @param {Mixed} value value for the where
+   * @returns {Object} this class
+   */
+  orWhere(field, value) {
+    // If null or empty ?
+    if (this.objectQuery.where === null) {
+      this.objectQuery.where = "";
+    } else {
+      this.objectQuery.where += ` OR `;
+    }
+
+    // Complete where condition
+    this.objectQuery.where += ` (${field} = $${this.params.length}) `;
+    this.params.push(value);
+
+    return this;
+  }
+
+  /**
+   * Add a condition in the WHERE part
+   * @param {String} field impacted field for the where
+   * @param {String} sign particular sign for the where
+   * @param {Mixed} value value for the where
+   * @returns {Object} this class
+   */
+  orWhere(field, sign, value) {
+    // If null or empty ?
+    if (this.objectQuery.where === null) {
+      this.objectQuery.where = "";
+    } else {
+      this.objectQuery.where += ` OR `;
+    }
+
+    // Complete where condition
+    this.objectQuery.where += ` (${field} ${sign} $${this.params.length}) `;
+    this.params.push(value);
+
     return this;
   }
 
@@ -299,12 +385,33 @@ class queryBuilder {
 
   /**
    * Add parameter before running the query
+   * @param {Array,String} params Parameter for the query
+   * @returns {Object} this class
+   */
+  addParams(params) {
+    if (!Array.isArray(params)) {
+      params = [params];
+    }
+    this.params = this.params.concat(params);
+    return this;
+  }
+
+  /**
+   * Set or replace parameters before running the query
    * @param {Array} params Parameter for the query
    * @returns {Object} this class
    */
   setParams(params) {
     this.params = params;
     return this;
+  }
+
+  /**
+   * Get parameters before running the query
+   * @returns {Array} parameters
+   */
+  getParams() {
+    return this.params;
   }
 
   /**
@@ -327,7 +434,7 @@ class queryBuilder {
     let q = new Query(this.getQuery());
 
     // If parameters, add them to the query
-    if (typeof this.params === "object" && this.params !== null && this.params.length > 0) {
+    if (Array.isArray(this.params) && this.params.length > 0) {
       q.setParams(this.params);
     }
 
@@ -344,7 +451,7 @@ class queryBuilder {
     let q = new Query(this.getQuery());
 
     // If parameters, add them to the query
-    if (typeof this.params === "object" && this.params !== null && this.params.length > 0) {
+    if (Array.isArray(this.params) && this.params.length > 0) {
       q.setParams(this.params);
     }
 
@@ -362,13 +469,13 @@ class queryBuilder {
   }
 
   getValue() {
-    if (!this.realQuery.includes("LIMIT")) {
-      this.realQuery += " LIMIT 1";
-    }
-    let q = new Query(this.realQuery);
-    if (this.params !== null) {
+    this.objectQuery.limit = { nb: 1, offset: 0 };
+    let q = new Query(this.getQuery());
+
+    if (this.params.length > 0) {
       q.setParams(this.params);
     }
+
     return new Promise((resolve, reject) => {
       q.execute()
         .then((result) => {
@@ -385,13 +492,13 @@ class queryBuilder {
     });
   }
   getRow() {
-    if (!this.realQuery.includes("LIMIT")) {
-      this.realQuery += " LIMIT 1";
-    }
-    let q = new query(this.realQuery);
-    if (this.params !== null) {
+    this.objectQuery.limit = { nb: 1, offset: 0 };
+    let q = new Query(this.getQuery());
+
+    if (this.params.length > 0) {
       q.setParams(this.params);
     }
+
     return new Promise((resolve, reject) => {
       q.execute()
         .then((result) => {
@@ -407,20 +514,21 @@ class queryBuilder {
     });
   }
   count(field) {
-    if (this.realQuery.includes("SELECT")) {
+    if (this.objectQuery.select.length > 0) {
       throw new BabyOrmError(`QueryBuilderError`, "SELECT instruction already present in the query");
     }
 
     if (typeof field === "undefined" || field.length === 0) {
       field = "*";
     }
+    this.objectQuery.select.push(`COUNT(${field}) AS total`);
 
-    this.realQuery = `SELECT COUNT(${field}) ` + this.realQuery;
+    let q = new Query(this.getQuery());
 
-    let q = new query(this.realQuery);
-    if (this.params !== null) {
+    if (this.params.length > 0) {
       q.setParams(this.params);
     }
+
     return new Promise((resolve, reject) => {
       q.execute()
         .then((result) => {
@@ -428,7 +536,7 @@ class queryBuilder {
             resolve(0);
           }
           let row = result.rows[0];
-          resolve(row[Object.keys(row)[0]]);
+          resolve(row.total);
         })
         .catch((e) => {
           console.error(e);
