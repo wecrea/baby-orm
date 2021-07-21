@@ -100,56 +100,33 @@ class queryBuilder {
 
   /**
    * Add a condition in the WHERE part
-   * @param {String} condition condition for the where
+   * @param {String} p1 Complete raw condition or field
+   * @param {Mixed} p2 sign or value
+   * @param {Mixed} p3 value if p2 is a sign
    * @returns {Object} this class
    */
-  where(condition) {
+  where(p1, p2 = null, p3 = null) {
     // If not null or empty ?
     if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
       this.objectQuery.where += ` AND `;
+    }
+
+    if (typeof p3 !== "undefined" && p3 !== null) {
+      // Complete where condition and params array
+      this.objectQuery.where += ` (${p1} ${p2} $${this.params.length + 1}) `;
+      this.params.push(p3);
+      return this;
+    }
+
+    if (typeof p2 !== "undefined" && p2 !== null) {
+      // Complete where condition and add param in object
+      this.objectQuery.where += ` (${p1} = $${this.params.length + 1}) `;
+      this.params.push(p2);
+      return this;
     }
 
     // Complete where condition
-    this.objectQuery.where += ` (${condition}) `;
-    return this;
-  }
-
-  /**
-   * Add a condition in the WHERE part
-   * @param {String} field impacted field for the where
-   * @param {Mixed} value value for the where
-   * @returns {Object} this class
-   */
-  where(field, value) {
-    // If not null or empty ?
-    if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
-      this.objectQuery.where += ` AND `;
-    }
-
-    // Complete where condition and add param in object
-    this.objectQuery.where += ` (${field} = $${this.params.length}) `;
-    this.params.push(value);
-
-    return this;
-  }
-
-  /**
-   * Add a condition in the WHERE part
-   * @param {String} field impacted field for the where
-   * @param {String} sign particular sign for the where
-   * @param {Mixed} value value for the where
-   * @returns {Object} this class
-   */
-  where(field, sign, value) {
-    // If not null or empty ?
-    if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
-      this.objectQuery.where += ` AND `;
-    }
-
-    // Complete where condition and params array
-    this.objectQuery.where += ` (${field} ${sign} $${this.params.length}) `;
-    this.params.push(value);
-
+    this.objectQuery.where += ` (${p1}) `;
     return this;
   }
 
