@@ -104,10 +104,8 @@ class queryBuilder {
    * @returns {Object} this class
    */
   where(condition) {
-    // If null or empty ?
-    if (this.objectQuery.where === null) {
-      this.objectQuery.where = "";
-    } else {
+    // If not null or empty ?
+    if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
       this.objectQuery.where += ` AND `;
     }
 
@@ -123,10 +121,8 @@ class queryBuilder {
    * @returns {Object} this class
    */
   where(field, value) {
-    // If null or empty ?
-    if (this.objectQuery.where === null) {
-      this.objectQuery.where = "";
-    } else {
+    // If not null or empty ?
+    if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
       this.objectQuery.where += ` AND `;
     }
 
@@ -145,10 +141,8 @@ class queryBuilder {
    * @returns {Object} this class
    */
   where(field, sign, value) {
-    // If null or empty ?
-    if (this.objectQuery.where === null) {
-      this.objectQuery.where = "";
-    } else {
+    // If not null or empty ?
+    if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
       this.objectQuery.where += ` AND `;
     }
 
@@ -165,10 +159,8 @@ class queryBuilder {
    * @returns {Object} this class
    */
   orWhere(condition) {
-    // If null or empty ?
-    if (this.objectQuery.where === null) {
-      this.objectQuery.where = "";
-    } else {
+    // If not null or empty ?
+    if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
       this.objectQuery.where += ` OR `;
     }
 
@@ -183,10 +175,8 @@ class queryBuilder {
    * @returns {Object} this class
    */
   orWhere(field, value) {
-    // If null or empty ?
-    if (this.objectQuery.where === null) {
-      this.objectQuery.where = "";
-    } else {
+    // If not null or empty ?
+    if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
       this.objectQuery.where += ` OR `;
     }
 
@@ -205,10 +195,8 @@ class queryBuilder {
    * @returns {Object} this class
    */
   orWhere(field, sign, value) {
-    // If null or empty ?
-    if (this.objectQuery.where === null) {
-      this.objectQuery.where = "";
-    } else {
+    // If not null or empty ?
+    if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
       this.objectQuery.where += ` OR `;
     }
 
@@ -225,10 +213,8 @@ class queryBuilder {
    * @returns {Object} this class
    */
   whereNull(field) {
-    // If null or empty ?
-    if (this.objectQuery.where === null) {
-      this.objectQuery.where = "";
-    } else {
+    // If not null or empty ?
+    if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
       this.objectQuery.where += ` AND `;
     }
 
@@ -243,10 +229,8 @@ class queryBuilder {
    * @returns {Object} this class
    */
   whereNotNull(field) {
-    // If null or empty ?
-    if (this.objectQuery.where === null) {
-      this.objectQuery.where = "";
-    } else {
+    // If not null or empty ?
+    if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
       this.objectQuery.where += ` AND `;
     }
 
