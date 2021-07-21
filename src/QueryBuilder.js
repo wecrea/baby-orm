@@ -351,7 +351,7 @@ class queryBuilder {
     }
 
     // Make WHERE part of the query if needed
-    if (this.objectQuery.where !== null) {
+    if (this.objectQuery.where !== null && this.objectQuery.where.length > 0) {
       query += ` WHERE ${this.objectQuery.where} `;
     }
 
