@@ -545,4 +545,4 @@ class ORM {
   }
 }
 
-module.exports = new ORM();
+module.exports = ORM;
