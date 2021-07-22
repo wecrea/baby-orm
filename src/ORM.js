@@ -56,7 +56,7 @@ class ORM {
    * @param {Object} data Data of the model fields
    * @returns {Object}
    */
-  create(data) {
+  create(data, returningId = true) {
     // Create query and execute it before return the complete Object
     return new Promise((resolve, reject) => {
       // fill new object model with data
@@ -107,7 +107,11 @@ class ORM {
       }
 
       // Make the query with all field and values (returning ID to load Object after)
-      query += ` (${fields.join(",")}) VALUES (${values.join(",")}) RETURNING id`;
+      query += ` (${fields.join(",")}) VALUES (${values.join(",")})`;
+
+      if (returningId === true) {
+        $query += ` RETURNING id`;
+      }
 
       async.waterfall(
         [
@@ -120,24 +124,29 @@ class ORM {
             Q.execute()
               .then((result) => {
                 // If OK, then call next method to retrieve all object
-                cb(null, result.rows[0].id);
+                return cb(null, returningId === true ? result.rows[0].id : null);
               })
               .catch((e) => {
                 // Error, please log me somewhere ^^
-                cb(e);
+                return cb(e);
               });
           },
           (result, cb) => {
+            // No ID to return
+            if (result === null && returningId === false) {
+              return cb(null, null);
+            }
+
             // Retrieve new object in DB
             let Q = new Query(`SELECT * FROM ${this.currentModel.config.table} WHERE id = $1 LIMIT 1`, [result]);
             Q.execute()
               .then((result) => {
                 // OK, we get the row and go to the callback
-                cb(null, result.rows[0]);
+                return cb(null, result.rows[0]);
               })
               .catch((e) => {
                 // Error, please log me somewhere ^^
-                cb(e);
+                return cb(e);
               });
           },
         ],
@@ -147,6 +156,11 @@ class ORM {
             this.errors.push(err.toString());
             reject(err);
             return false;
+          }
+
+          // No ID to return, so return null
+          if (result === null && returningId === false) {
+            return resolve(null);
           }
 
           // Fill result in an object form the model fields
