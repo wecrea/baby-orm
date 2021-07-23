@@ -110,7 +110,7 @@ class ORM {
       query += ` (${fields.join(",")}) VALUES (${values.join(",")})`;
 
       if (returningId === true) {
-        $query += ` RETURNING id`;
+        query += ` RETURNING id`;
       }
 
       async.waterfall(
@@ -124,11 +124,11 @@ class ORM {
             Q.execute()
               .then((result) => {
                 // If OK, then call next method to retrieve all object
-                return cb(null, returningId === true ? result.rows[0].id : null);
+                cb(null, returningId === true ? result.rows[0].id : null);
               })
               .catch((e) => {
                 // Error, please log me somewhere ^^
-                return cb(e);
+                cb(e);
               });
           },
           (result, cb) => {
@@ -142,11 +142,11 @@ class ORM {
             Q.execute()
               .then((result) => {
                 // OK, we get the row and go to the callback
-                return cb(null, result.rows[0]);
+                cb(null, result.rows[0]);
               })
               .catch((e) => {
                 // Error, please log me somewhere ^^
-                return cb(e);
+                cb(e);
               });
           },
         ],
@@ -155,11 +155,10 @@ class ORM {
             // Error part
             this.errors.push(err.toString());
             reject(err);
-            return false;
           }
 
           // No ID to return, so return null
-          if (result === null && returningId === false) {
+          if (data === null && returningId === false) {
             return resolve(null);
           }
 
