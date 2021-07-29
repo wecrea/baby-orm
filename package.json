@@ -7,7 +7,7 @@
     "database",
     "postgres"
   ],
-  "version": "1.0.30",
+  "version": "1.0.31",
   "license": "Apache 2",
   "homepage": "https://github.com/wecrea/baby-orm",
   "repository": "https://github.com/wecrea/baby-orm.git",
