@@ -475,8 +475,15 @@ class ORM {
         params = [],
         i = 1;
 
+      // Manage id field : auto-increment or generated ?
+      if (this.currentModel.config.use_autoincrement === false && this.currentModel.fields.id !== undefined) {
+        fields.push("id");
+        values.push("$" + i++);
+        params.push(Helpers.uniqid());
+      }
+
       // for each field, created an entry
-      for (let field in object) {
+      for (let field in finalObject) {
         // Field is fillable ?
         if (this.autoFillableFields.includes(field)) {
           continue;
@@ -484,16 +491,30 @@ class ORM {
 
         fields.push(field);
         values.push("$" + i++);
-        params.push(object[field]);
+        params.push(finalObject[field]);
+      }
+
+      // use auto fillable timestamps fields ?
+      if (this.currentModel.config.timestamps === true) {
+        fields.push("created_at");
+        values.push("$" + i++);
+        params.push("NOW()");
       }
 
       // Make the query with all field and values (returning ID to load Object after)
       query += ` (${fields.join(",")}) VALUES (${values.join(",")}) `;
       query += `ON CONFLICT (${conflict_field}) DO UPDATE SET `;
 
+      // use auto fillable timestamps fields : add updated_at
+      if (this.currentModel.config.timestamps === true) {
+        fields.push("updated_at");
+        values.push("$" + i++);
+        params.push("NOW()");
+      }
+
       // Make update part
       for (let j in fields) {
-        if (fields[j] === conflict_field) {
+        if (fields[j] === conflict_field || ["id", "created_at", "deleted_at"].includes(fields[j])) {
           continue;
         }
         query += ` ${fields[j]} = ${values[j]}, `;
