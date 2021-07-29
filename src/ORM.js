@@ -12,6 +12,7 @@ class ORM {
   constructor() {
     this.currentModel = null;
     this.errors = [];
+    this.lastQuery = "";
     this.autoFillableFields = ["id", "created_at", "updated_at", "deleted_at"];
   }
 
@@ -23,7 +24,16 @@ class ORM {
   model(name) {
     this.currentModel = new Model(name);
     this.errors = [];
+    this.lastQuery = "";
     return this;
+  }
+
+  /**
+   * Get last query launched with ORM
+   * @returns {String} last query launched
+   */
+  getLastQuery() {
+    return this.lastQuery;
   }
 
   /**
@@ -118,6 +128,7 @@ class ORM {
           (cb) => {
             // Execute INSERT query to create entry in DB
             let Q = new Query(query);
+            this.lastQuery = query;
             if (params.length > 0) {
               Q.setParams(params);
             }
@@ -175,6 +186,7 @@ class ORM {
     let query = `SELECT * FROM ${this.currentModel.config.table} WHERE id = $1 LIMIT 1`;
     return new Promise((resolve, reject) => {
       let Q = new Query(query, [id]);
+      this.lastQuery = query;
       Q.execute()
         .then((result) => {
           let res = result.rowCount === 1 ? this.currentModel.complete(result.rows[0]) : null;
@@ -221,6 +233,7 @@ class ORM {
     query += ` LIMIT 1`;
     return new Promise((resolve, reject) => {
       let Q = new Query(query, params);
+      this.lastQuery = query;
       Q.execute()
         .then((result) => {
           let res = result.rowCount === 1 ? this.currentModel.complete(result.rows[0]) : null;
@@ -266,6 +279,7 @@ class ORM {
 
     return new Promise((resolve, reject) => {
       let Q = new Query(query, params);
+      this.lastQuery = query;
       Q.execute()
         .then((result) => {
           let finalArray = [];
@@ -336,6 +350,7 @@ class ORM {
         };
 
         let Q = new Query(query, params);
+        this.lastQuery = query;
         Q.execute()
           .then((result) => {
             let finalArray = [];
@@ -389,6 +404,7 @@ class ORM {
         params.push(id);
 
         let Q = new Query(query, params);
+        this.lastQuery = query;
         Q.execute()
           .then((result) => {
             resolve(finalObject);
@@ -448,6 +464,7 @@ class ORM {
       }
 
       let Q = new Query(query, params);
+      this.lastQuery = query;
       Q.execute()
         .then((result) => {
           resolve(finalObject);
@@ -524,6 +541,7 @@ class ORM {
       query = query.slice(0, -2);
 
       let Q = new Query(query, params);
+      this.lastQuery = query;
       Q.execute()
         .then((result) => {
           resolve(finalObject);
@@ -548,6 +566,7 @@ class ORM {
 
     return new Promise((resolve, reject) => {
       let Q = new Query(query, params);
+      this.lastQuery = query;
       Q.execute()
         .then((result) => {
           resolve(result.rowCount);
