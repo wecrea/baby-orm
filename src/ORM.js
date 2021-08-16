@@ -233,7 +233,7 @@ class ORM {
           }
           if (where[field_w].length === 3) {
             query += ` ${where[field_w][0]} ${where[field_w][1]} $${i++} `;
-            params.push(where[field_w][1]);
+            params.push(where[field_w][2]);
           }
         }
       }
@@ -279,7 +279,7 @@ class ORM {
           }
           if (where[field_w].length === 3) {
             query += ` ${where[field_w][0]} ${where[field_w][1]} $${i++} `;
-            params.push(where[field_w][1]);
+            params.push(where[field_w][2]);
           }
         }
       }
@@ -330,7 +330,7 @@ class ORM {
           }
           if (where[field_w].length === 3) {
             query += ` ${where[field_w][0]} ${where[field_w][1]} $${i++} `;
-            params.push(where[field_w][1]);
+            params.push(where[field_w][2]);
           }
         }
       }
@@ -468,7 +468,7 @@ class ORM {
         }
         if (where[field_w].length === 3) {
           query += ` ${where[field_w][0]} ${where[field_w][1]} $${i++} `;
-          params.push(where[field_w][1]);
+          params.push(where[field_w][2]);
         }
       }
 
