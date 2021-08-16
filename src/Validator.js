@@ -73,9 +73,7 @@ class Validator {
    */
   number(field_name, value) {
     if (isNaN(value) === false && this.emptyOrNull(value) === false) {
-      this.errors.push(
-        `Field ${field_name} must be a number (received : ${value})`
-      );
+      this.errors.push(`Field ${field_name} must be a number (received : ${value})`);
       return false;
     }
     return true;
@@ -89,9 +87,7 @@ class Validator {
    */
   boolean(field_name, value) {
     if (typeof value !== "boolean" && this.emptyOrNull(value) === false) {
-      this.errors.push(
-        `Field ${field_name} must be a boolean (received : ${value})`
-      );
+      this.errors.push(`Field ${field_name} must be a boolean (received : ${value})`);
       return false;
     }
     return true;
@@ -104,13 +100,8 @@ class Validator {
    * @returns {Boolean}
    */
   integer(field_name, value) {
-    if (
-      Number.isInteger(value) === false &&
-      this.emptyOrNull(value) === false
-    ) {
-      this.errors.push(
-        `Field ${field_name} must be an integer (received : ${value})`
-      );
+    if (Number.isInteger(value) === false && this.emptyOrNull(value) === false) {
+      this.errors.push(`Field ${field_name} must be an integer (received : ${value})`);
       return false;
     }
     return true;
@@ -157,13 +148,8 @@ class Validator {
    * @returns {Boolean}
    */
   date(field_name, value) {
-    if (
-      moment(value).isValid() === false &&
-      this.emptyOrNull(value) === false
-    ) {
-      this.errors.push(
-        `Field ${field_name} must be a Date (received : ${value})`
-      );
+    if (moment(value).isValid() === false && this.emptyOrNull(value) === false) {
+      this.errors.push(`Field ${field_name} must be a Date (received : ${value})`);
       return false;
     }
     return true;
@@ -178,9 +164,7 @@ class Validator {
    */
   minLength(field_name, value, length) {
     if (value.length < length && this.emptyOrNull(value) === false) {
-      this.errors.push(
-        `Length of ${field_name} must be greater or equal than ${length} (actual length : ${value.length})`
-      );
+      this.errors.push(`Length of ${field_name} must be greater or equal than ${length} (actual length : ${value.length})`);
       return false;
     }
     return true;
@@ -195,9 +179,7 @@ class Validator {
    */
   maxLength(field_name, value, length) {
     if (value.length > length && this.emptyOrNull(value) === false) {
-      this.errors.push(
-        `Length of ${field_name} must be less than or equal to ${length} (actual length : ${value.length})`
-      );
+      this.errors.push(`Length of ${field_name} must be less than or equal to ${length} (actual length : ${value.length})`);
       return false;
     }
     return true;
@@ -212,9 +194,7 @@ class Validator {
    */
   minValue(field_name, value, minVal) {
     if (value < minVal && this.emptyOrNull(value) === false) {
-      this.errors.push(
-        `Field ${field_name} must have a value less than ${minVal} (received : ${value})`
-      );
+      this.errors.push(`Field ${field_name} must have a value less than ${minVal} (received : ${value})`);
       return false;
     }
     return true;
@@ -229,9 +209,7 @@ class Validator {
    */
   maxValue(field_name, value, maxVal) {
     if (value > maxVal && this.emptyOrNull(value) === false) {
-      this.errors.push(
-        `Field ${field_name} must have a value greater than ${maxVal} (received : ${value})`
-      );
+      this.errors.push(`Field ${field_name} must have a value greater than ${maxVal} (received : ${value})`);
       return false;
     }
     return true;
@@ -246,13 +224,8 @@ class Validator {
    */
   between(field_name, value, minmax) {
     let { minVal, maxVal } = minmax.split(",");
-    if (
-      (value < minVal || value > maxVal) &&
-      this.emptyOrNull(value) === false
-    ) {
-      this.errors.push(
-        `Field ${field_name} must have a value between ${minVal} and ${maxVal} (received : ${value})`
-      );
+    if ((value < minVal || value > maxVal) && this.emptyOrNull(value) === false) {
+      this.errors.push(`Field ${field_name} must have a value between ${minVal} and ${maxVal} (received : ${value})`);
       return false;
     }
     return true;
@@ -266,13 +239,8 @@ class Validator {
    */
   uniqid(field_name, value) {
     const UNIQID_REGEX = /^([a-zA-Z0-9]{14})$/;
-    if (
-      UNIQID_REGEX.test(value) === false &&
-      this.emptyOrNull(value) === false
-    ) {
-      this.errors.push(
-        `Field ${field_name} must be a UniqId of database (received: ${value})`
-      );
+    if (UNIQID_REGEX.test(value) === false && this.emptyOrNull(value) === false) {
+      this.errors.push(`Field ${field_name} must be a UniqId of database (received: ${value})`);
       return false;
     }
     return true;
@@ -286,15 +254,9 @@ class Validator {
    * @returns {Boolean}
    */
   password(field_name, value) {
-    const PASSWORD_REGEX =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@+?#\$%&\*])(?=.{8,})/;
-    if (
-      PASSWORD_REGEX.test(value) === false &&
-      this.emptyOrNull(value) === false
-    ) {
-      this.errors.push(
-        `Field ${field_name} must be a correct password which contains minimum 8 char, 1 lowercase, 1 uppercase, 1 number and 1 special char (in : !@+?#$%&*)`
-      );
+    const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@+?#\$%&\*])(?=.{8,})/;
+    if (PASSWORD_REGEX.test(value) === false && this.emptyOrNull(value) === false) {
+      this.errors.push(`Field ${field_name} must be a correct password which contains minimum 8 char, 1 lowercase, 1 uppercase, 1 number and 1 special char (in : !@+?#$%&*)`);
       return false;
     }
     return true;
@@ -307,12 +269,9 @@ class Validator {
    * @returns {Boolean}
    */
   email(field_name, value) {
-    const EMAIL_REGEX =
-      /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (EMAIL_REGEX.test(value) && this.emptyOrNull(value) === false) {
-      this.errors.push(
-        `Field ${field_name} must have an email format (received : ${value})`
-      );
+      this.errors.push(`Field ${field_name} must have an email format (received : ${value})`);
       return false;
     }
     return true;
@@ -327,9 +286,7 @@ class Validator {
   zipcode(field_name, value) {
     const ZIPCODE_REGEX = /^(([0-8][0-9])|(9[0-5])|(2[abAB]))[0-9]{3}$/;
     if (ZIPCODE_REGEX.test(value) && this.emptyOrNull(value) === false) {
-      this.errors.push(
-        `Field ${field_name} must be a french zipcode (received : ${value})`
-      );
+      this.errors.push(`Field ${field_name} must be a french zipcode (received : ${value})`);
       return false;
     }
     return true;
@@ -344,9 +301,7 @@ class Validator {
   telephone(field_name, value) {
     const PHONE_REGEX = /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/;
     if (PHONE_REGEX.test(value) && this.emptyOrNull(value) === false) {
-      this.errors.push(
-        `Field ${field_name} must be a french number phone (received : ${value})`
-      );
+      this.errors.push(`Field ${field_name} must be a french number phone (received : ${value})`);
       return false;
     }
     return true;
@@ -362,9 +317,7 @@ class Validator {
   in(field_name, value, list) {
     let authorize_values = list.split(",");
     if (authorize_values.includes(value) === false) {
-      this.errors.push(
-        `Field ${field_name} must be in the list : ${list} (received : ${value})`
-      );
+      this.errors.push(`Field ${field_name} must be in the list : ${list} (received : ${value})`);
       return false;
     }
     return true;
@@ -379,20 +332,71 @@ class Validator {
    */
   async exist(field_name, value, data) {
     let { table, column } = data.split(",");
-    let Q = new Query(
-      `SELECT COUNT(*) AS total FROM ${table} WHERE ${column} = $1`,
-      [value]
-    );
+    let Q = new Query(`SELECT COUNT(*) AS total FROM ${table} WHERE ${column} = $1`, [value]);
     try {
       let result = await Q.execute();
       return result.total > 0;
     } catch (err) {
-      this.errors.push(
-        `Field ${field_name} must exist in database (received : ${value})`
-      );
+      this.errors.push(`Field ${field_name} must exist in database (received : ${value})`);
       return false;
     }
-    return true;
+  }
+
+  /**
+   * Check if value exist in database and deleted_at field is null
+   * @param {String} field_name Field name
+   * @param {*} value Value of the field
+   * @param {String} data format = table,column
+   * @returns {Boolean}
+   */
+  async existNotDeleted(field_name, value, data) {
+    let { table, column } = data.split(",");
+    let Q = new Query(`SELECT COUNT(*) AS total FROM ${table} WHERE ${column} = $1 AND deleted_at IS NULL`, [value]);
+    try {
+      let result = await Q.execute();
+      return result.total > 0;
+    } catch (err) {
+      this.errors.push(`Field ${field_name} must exist in database (received : ${value})`);
+      return false;
+    }
+  }
+
+  /**
+   * Check if value exist in database and enabled is true
+   * @param {String} field_name Field name
+   * @param {*} value Value of the field
+   * @param {String} data format = table,column
+   * @returns {Boolean}
+   */
+  async existEnabled(field_name, value, data) {
+    let { table, column } = data.split(",");
+    let Q = new Query(`SELECT COUNT(*) AS total FROM ${table} WHERE ${column} = $1 AND enabled = TRUE`, [value]);
+    try {
+      let result = await Q.execute();
+      return result.total > 0;
+    } catch (err) {
+      this.errors.push(`Field ${field_name} must exist in database (received : ${value})`);
+      return false;
+    }
+  }
+
+  /**
+   * Check if value exist in database , enabled and not soft-deleted
+   * @param {String} field_name Field name
+   * @param {*} value Value of the field
+   * @param {String} data format = table,column
+   * @returns {Boolean}
+   */
+  async existEnabledNotDeleted(field_name, value, data) {
+    let { table, column } = data.split(",");
+    let Q = new Query(`SELECT COUNT(*) AS total FROM ${table} WHERE ${column} = $1 AND enabled = TRUE AND deleted_at IS NULL`, [value]);
+    try {
+      let result = await Q.execute();
+      return result.total > 0;
+    } catch (err) {
+      this.errors.push(`Field ${field_name} must exist in database (received : ${value})`);
+      return false;
+    }
   }
 
   /**
