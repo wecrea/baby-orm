@@ -89,6 +89,11 @@ class Model {
     return this.fields;
   }
 
+  /**
+   * Complete model with data and hide hidden fields
+   * @param {Object} data Content to fill
+   * @returns {Object}
+   */
   complete(data) {
     if (data === undefined || data === null) {
       return this.fields;
@@ -101,6 +106,22 @@ class Model {
       this.fields[key] = value;
     }
     return this.fields;
+  }
+
+  /**
+   * Get all fields names in an array
+   * @returns {Array}
+   */
+  getFieldNames() {
+    return this.config.fields.keys;
+  }
+
+  /**
+   * Get all relations in an object
+   * @returns {Object}
+   */
+  getRelations() {
+    return this.config.relations;
   }
 }
 
