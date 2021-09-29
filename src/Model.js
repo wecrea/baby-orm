@@ -29,11 +29,11 @@ class Model {
       fillable_fields: typeof model.config.fillable_fields !== "undefined" ? model.config.fillable_fields : null,
       hidden_fields: typeof model.config.hidden_fields !== "undefined" ? model.config.hidden_fields : [],
       validations: typeof model.config.validations !== "undefined" ? model.config.validations : {},
-      relations: typeof model.config.relations !== "undefined" ? model.config.relations : [],
     };
 
     // Initialize fields and methods
     this.fields = model.fields;
+    this.relations = typeof model.relations !== "undefined" ? model.relations : [];
     this.methods = typeof model.methods !== "undefined" ? model.methods : {};
 
     // crate proxy to access methods and fields directly
@@ -113,7 +113,7 @@ class Model {
    * @returns {Array}
    */
   getFieldNames() {
-    return this.config.fields.keys;
+    return this.fields.keys;
   }
 
   /**
@@ -121,7 +121,7 @@ class Model {
    * @returns {Object}
    */
   getRelations() {
-    return this.config.relations;
+    return this.relations;
   }
 }
 
