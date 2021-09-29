@@ -113,7 +113,7 @@ class Model {
    * @returns {Array}
    */
   getFieldNames() {
-    return this.fields.keys;
+    return this.fields.keys();
   }
 
   /**
