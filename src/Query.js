@@ -14,11 +14,7 @@ class Query {
     this.params = params;
 
     try {
-      const pool = new Pool();
-      pool.connect((err, client, done) => {
-        if (err) throw err;
-        this.client = client;
-      });
+      this.pool = new Pool();
     } catch (e) {
       console.error(e);
       throw new BabyOrmError("ConnexionError", e);
@@ -96,17 +92,12 @@ class Query {
     try {
       // Execute without parameters
       if (this.params === null || this.params.length === 0) {
-        const result = this.client.query(this.query);
-        this.client.release();
-        return result;
+        return this.pool.query(this.query);
       }
 
       // Execute with parameters
-      const result = this.client.query(this.query, this.params);
-      this.client.release();
-      return result;
+      return this.pool.query(this.query, this.params);
     } catch (err) {
-      this.client.release();
       throw new BabyOrmError("QueryError", err.message);
     }
   }
@@ -122,18 +113,15 @@ class Query {
 
       if (this.params === null || this.params.length === 0) {
         // Execute without parameters
-        result = await this.client.query(this.query);
+        result = await this.pool.query(this.query);
       } else {
         // Execute with parameters
-        result = await this.client.query(this.query, this.params);
+        result = await this.pool.query(this.query, this.params);
       }
-
-      this.client.release();
 
       // Return only the first row
       return result.rows[0];
     } catch (err) {
-      this.client.release();
       throw new BabyOrmError("QueryError", err.message);
     }
   }
@@ -149,18 +137,15 @@ class Query {
 
       if (this.params === null || this.params.length === 0) {
         // Execute without parameters
-        result = await this.client.query(this.query);
+        result = await this.pool.query(this.query);
       } else {
         // Execute with parameters
-        result = await this.client.query(this.query, this.params);
+        result = await this.pool.query(this.query, this.params);
       }
-
-      this.client.release();
 
       // Return only the first row
       return result.rows[0][name];
     } catch (err) {
-      this.client.release();
       throw new BabyOrmError("QueryError", err.message);
     }
   }
