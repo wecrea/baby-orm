@@ -18,6 +18,7 @@ class queryBuilder {
       order: [],
     };
     this.params = [];
+    this.queryInstance = new Query();
   }
 
   /**
@@ -392,7 +393,7 @@ class queryBuilder {
    */
   execute(callback) {
     // Initialize the Query
-    let q = new Query(this.getQuery());
+    let q = this.queryInstance.setQuery(this.getQuery());
 
     // If parameters, add them to the query
     if (Array.isArray(this.params) && this.params.length > 0) {
@@ -409,7 +410,7 @@ class queryBuilder {
    */
   execute() {
     // Initialize the Query
-    let q = new Query(this.getQuery());
+    let q = this.queryInstance.setQuery(this.getQuery());
 
     // If parameters, add them to the query
     if (Array.isArray(this.params) && this.params.length > 0) {
@@ -431,7 +432,7 @@ class queryBuilder {
 
   getValue() {
     this.objectQuery.limit = { nb: 1, offset: 0 };
-    let q = new Query(this.getQuery());
+    let q = this.queryInstance.setQuery(this.getQuery());
 
     if (this.params.length > 0) {
       q.setParams(this.params);
@@ -454,7 +455,7 @@ class queryBuilder {
   }
   getRow() {
     this.objectQuery.limit = { nb: 1, offset: 0 };
-    let q = new Query(this.getQuery());
+    let q = this.queryInstance.setQuery(this.getQuery());
 
     if (this.params.length > 0) {
       q.setParams(this.params);
@@ -484,7 +485,7 @@ class queryBuilder {
     }
     this.objectQuery.select.push(`COUNT(${field}) AS total`);
 
-    let q = new Query(this.getQuery());
+    let q = this.queryInstance.setQuery(this.getQuery());
 
     if (this.params.length > 0) {
       q.setParams(this.params);

@@ -14,6 +14,7 @@ class ORM {
     this.errors = [];
     this.lastQuery = {};
     this.autoFillableFields = ["id", "created_at", "updated_at", "deleted_at"];
+    this.queryInstance = new Query();
   }
 
   /**
@@ -39,11 +40,9 @@ class ORM {
       query,
       params,
     };
-    let Q = new Query(query, params);
-    if (params !== null && params.length > 0) {
-      Q.setParams(params);
-    }
-    return Q;
+    this.queryInstance.setQuery(query);
+    this.queryInstance.setParams(params);
+    return this.queryInstance;
   }
 
   /**
@@ -595,7 +594,8 @@ class ORM {
     let relationModel = new Model(relation.name);
 
     try {
-      let Q = new Query(`SELECT * FROM ${relationModel.config.table} WHERE ${relation.distant_field} = $1`, [this.currentModel.fields[relation.local_field]]);
+      this.queryInstance.setQuery(`SELECT * FROM ${relationModel.config.table} WHERE ${relation.distant_field} = $1`);
+      this.queryInstance.setParams([this.currentModel.fields[relation.local_field]]);
       let result = await Q.execute();
       return Validator.emptyOrNull(result) ? {} : relationModel.complete(result);
     } catch (err) {
